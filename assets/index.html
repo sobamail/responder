@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>App 11</title>
+
+  <script>
+    // to be replaced with scroll queries in chrome>=133
+    function checkScrollable(event) {
+      let el = document.getElementsByTagName("body")[0];
+      if (el.scrollHeight > el.clientHeight) {
+        el.classList.add("scrollable");
+      }
+      else {
+        el.classList.remove("scrollable");
+      }
+    }
+
+    addEventListener("resize", checkScrollable);
+    addEventListener("load", checkScrollable);
+  </script>
+  <style>
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    body.scrollable {
+      align-items: flex-start;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      height: auto;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #2c3e50;
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #555555;
+    }
+
+    pre, code {
+      font-size: 1rem;
+    }
+
+    .highlight {
+      color: #2980b9;
+      font-weight: 600;
+    }
+
+    .indent {
+      margin-left:2em
+    }
+
+    @media (max-width: 10em) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Hello from Vacation Responder!</h1>
+  </div>
+</body>
+
+</html>
