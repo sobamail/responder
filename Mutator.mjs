@@ -7,13 +7,14 @@
 import "soba://computer/R1";
 
 import {
+    Seen,
+} from "https://github.com/sobamail/responder/model/v1?sha224=13RD4IICOF24DLDDHMJGQ0S36JCVDL7AKINCE2AHVUS5U"
+import {
     DeleteRow,
     Message,
-} from "https://sobamail.com/module/base/v1?sha224=LbrFSXuQxm2gn4-FaglNXRQbcv7kAz9Zew-p1A";
+} from "https://sobamail.com/module/base/v1?sha224=KlP7z9DEJuUQ6gf8EJ8RDPoCynaxZMS6JRsVFQ";
 
-import {
-    Seen
-} from "https://github.com/sobamail/responder/model/v1?sha224=13RD4IICOF24DLDDHMJGQ0S36JCVDL7AKINCE2AHVUS5U"
+const DAY_MSECS = 86400 * 1000;
 
 export default class Responder {
     static id = "responder.test.user.app.sobamail.com";
@@ -27,7 +28,7 @@ export default class Responder {
 
     constructor() {
         soba.schema.table({
-            name : "resp",
+            name : "response",
             insertEvent : Seen,
             deleteEvent : DeleteRow,
             columns : [
@@ -41,10 +42,12 @@ export default class Responder {
                     ]
                 },
                 {
-                    name : "timestamp",
+                    name : "message",
                     checks : [
                         {op : "!=", value : null},
-                        {op : "typeof", value : "integer"},
+                        {op : "lww", value : true},
+                        {op : "regexp", value : soba.type.uuid.pattern},
+                        {op : "typeof", value : "text"},
                     ]
                 },
             ],
@@ -56,12 +59,36 @@ export default class Responder {
         soba.log.info(`metadata: ${JSON.stringify(metadata)}`);
         soba.log.info(` message: ${JSON.stringify(message, null, 2)}`);
 
+        // Parse replication tasks before doing anything else
         if (metadata.type == "task" || metadata.type == "task-replay") {
             let key = `{${message.namespace}}${message.name}`;
             if (key === Seen.KEY) {
                 return soba.data.insert(message.content);
             }
             throw new Error(`Unexpected objkey ${key}`);
+        }
+
+        // Get date from message
+        let date = message.dateMsec;
+
+        // Bail out if we could not get the date
+        if (! date) {
+            soba.log.error(`Skipping message ${message.uuid}: Unable to determine date`);
+            return;
+        }
+
+        // Bail out if the incoming message is too old
+        const now = soba.clock.physical.msecs();
+        if (now - date > DAY_MSECS) {
+            soba.log.error(`Skipping message ${message.uuid}: Message received too long ago`);
+            return;
+        }
+
+        let ret =
+                soba.data.insert("response", {sender : message.fromAddress, message : message.uuid})
+        if (! ret.inserted) {
+            soba.log.error(`Skipping message ${message.uuid}: Already responded`);
+            return;
         }
 
         let reply = new Message();
@@ -80,10 +107,7 @@ export default class Responder {
                 "\nPlease contact me some other time." +
                 "</p>";
 
-        soba.log.info(`Sent vacation response to "${reply.to[0].name} <${reply.to[0].address}>"`);
-
         soba.mail.send(reply);
-        soba.data.insert(
-                "resp", {sender : message.fromAddress, timestamp : soba.clock.physical.msecs()})
+        soba.log.info(`Sent vacation response to "${reply.to[0].name} <${reply.to[0].address}>"`);
     }
 }
