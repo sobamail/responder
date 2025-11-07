@@ -12,7 +12,7 @@ import {
 import {
     DeleteRow,
     Message,
-} from "https://sobamail.com/module/base/v1?sha224=KlP7z9DEJuUQ6gf8EJ8RDPoCynaxZMS6JRsVFQ";
+} from "https://sobamail.com/module/base/v1?sha224=lHPRerLbiqHkAShgnv6sjCjr_ReFSXlDJTe6Ew";
 
 const DAY_MSECS = 86400 * 1000;
 
